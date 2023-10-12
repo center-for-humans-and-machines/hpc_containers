@@ -13,9 +13,13 @@ For a nice introduction to Apptainer on our HPC systems, have a look at the awes
 You can also browse [our documentation](https://docs.mpcdf.mpg.de/doc/computing/software/containers.html#apptainer).
 
 ## Building containers
-TODO
+Containers are built via a [definition file](https://apptainer.org/docs/user/latest/definition_files.html) and the `apptainer build` command.
+
+In each folder of this repo you will find a definition `.def` file and a `README.md` that describes the exact build command.
 
 ## Running containers
-TODO
+**TODO:**
+- how to run the containers on our SLURM cluster
+- mention important flags, like `--nv` for example
 
 
