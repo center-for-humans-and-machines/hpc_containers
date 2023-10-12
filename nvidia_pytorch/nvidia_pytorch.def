@@ -1,0 +1,19 @@
+BootStrap: docker
+From: nvcr.io/nvidia/pytorch:23.08-py3
+
+%post
+
+%environment
+
+%files
+
+%runscript
+
+%labels
+  author David Carreto Fidalgo
+  version 1.0
+
+%help
+  The converted Docker image for NVIDIAs PyTorch (version 23.08).
+
+%test

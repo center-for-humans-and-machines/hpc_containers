@@ -1,0 +1,20 @@
+BootStrap: localimage
+From: nvidia_pytorch.sif
+
+%post
+  pip3 install accelerate datasets transformers
+
+%environment
+
+%files
+
+%runscript
+
+%labels
+  author David Carreto Fidalgo
+  version 1.0
+
+%help
+
+%test
+  python -c "import transformers"
