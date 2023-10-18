@@ -1,4 +1,5 @@
 import argparse
+import math
 
 from datasets import load_dataset
 from transformers import AutoTokenizer
@@ -8,7 +9,7 @@ from transformers import AutoModelForCausalLM, TrainingArguments, Trainer
 
 def main(args):
     model = AutoModelForCausalLM.from_pretrained("distilgpt2")
-    eli5 = load_dataset("eli5", split="train_asks[:50]")
+    eli5 = load_dataset("eli5", split="train_asks[:500]")
     tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
 
     eli5 = eli5.train_test_split(test_size=0.2)
@@ -68,6 +69,9 @@ def main(args):
     )
 
     trainer.train()
+
+    eval_results = trainer.evaluate()
+    print(f"Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
 
 
 if __name__ == "__main__":
