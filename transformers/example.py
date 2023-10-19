@@ -1,28 +1,43 @@
+# Reference: https://huggingface.co/docs/transformers/tasks/language_modeling
 import math
 
 from datasets import Dataset
 from transformers import AutoTokenizer
 from transformers import DataCollatorForLanguageModeling
 from transformers import AutoModelForCausalLM, TrainingArguments, Trainer
-import os
-
-
-print(os.environ)
+# import os
+# print(os.environ)
 
 
 def main():
     model = AutoModelForCausalLM.from_pretrained("distilgpt2")
     tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
 
-    ds = Dataset.from_dict({"text": [" ".join(["I will learn to repeat myself!"]*10)] * 5000})
+    ds = Dataset.from_text("./input.txt")
     ds = ds.train_test_split(test_size=0.2)
 
-    def preprocess_function(examples):
-        result = tokenizer(examples["text"])
-        result["labels"] = result["input_ids"].copy()
-        return result
+    def tokenize(examples):
+        return tokenizer(examples["text"])
 
-    tokenized_ds = ds.map(preprocess_function, batched=True)
+    tokenized_ds = ds.map(tokenize, batched=True, remove_columns=["text"])
+
+    def chunk_text(examples):
+        chunk_size = 128
+        # Concatenate tokens of the batch
+        examples = {key: sum(examples[key], []) for key in examples}
+        # Split tokens into chunks of chunk_size
+        # We will drop the remainder of size < chunk_size
+        total_length = len(examples["input_ids"])
+        max_length = (total_length // chunk_size) * chunk_size
+        examples = {
+            key: [value[i : i + chunk_size] for i in range(0, max_length, chunk_size)]
+            for key, value in examples.items()
+        }
+        examples["labels"] = examples["input_ids"].copy()
+
+        return examples
+
+    lm_ds = tokenized_ds.map(chunk_text, batched=True)
 
     tokenizer.pad_token = tokenizer.eos_token
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
@@ -37,8 +52,8 @@ def main():
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=tokenized_ds["train"],
-        eval_dataset=tokenized_ds["test"],
+        train_dataset=lm_ds["train"],
+        eval_dataset=lm_ds["test"],
         data_collator=data_collator,
     )
 
