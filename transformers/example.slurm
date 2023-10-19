@@ -25,14 +25,13 @@ module load apptainer
 #export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export OMP_NUM_THREADS=18
 
-
 # For pinning threads correctly:
 export OMP_PLACES=cores
 
 nvidia-smi --query-gpu=timestamp,utilization.gpu,utilization.memory --format=csv -l 1 > nvidia_smi_monitoring.csv &
 NVIDIASMI_PID=$!
 
-srun apptainer exec --nv -B .:"$HOME" transformers.sif torchrun --standalone --nnodes=1 --nproc-per-node=2 train_agent.py
+srun apptainer exec --nv -B .:"$HOME" transformers.sif torchrun --standalone --nnodes=1 --nproc-per-node=gpu example.py
 
 kill $NVIDIASMI_PID
 
