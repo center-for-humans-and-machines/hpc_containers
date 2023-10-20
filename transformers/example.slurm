@@ -5,13 +5,13 @@
 #SBATCH -D ./
 #SBATCH -J transformers
 #
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --tasks-per-node=1
-#SBATCH --cpus-per-task=36
+#SBATCH --cpus-per-task=72
 #SBATCH --mem=0
 #
 #SBATCH --constraint="gpu"
-#SBATCH --gres=gpu:a100:2
+#SBATCH --gres=gpu:a100:4
 #
 #SBATCH --mail-type=none
 #SBATCH --mail-user=david.carreto.fidalgo@gmail.com
@@ -22,16 +22,24 @@
 source /etc/profile.d/modules.sh
 module purge
 module load apptainer
-#export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
+
+# Avoid hyper-threading (in this case cpus-per-task // nr_of_gpus):
 export OMP_NUM_THREADS=18
 
 # For pinning threads correctly:
 export OMP_PLACES=cores
 
-nvidia-smi --query-gpu=timestamp,utilization.gpu,utilization.memory --format=csv -l 1 > nvidia_smi_monitoring.csv &
-NVIDIASMI_PID=$!
+# Useful for debugging:
+# export NCCL_DEBUG=INFO
 
-srun apptainer exec --nv -B .:"$HOME" transformers.sif torchrun --standalone --nnodes=1 --nproc-per-node=gpu example.py
 
-kill $NVIDIASMI_PID
+srun apptainer exec \
+	--nv -B .:"$HOME" \
+	transformers.sif torchrun \
+		--nnodes="$SLURM_NNODES" \
+		--nproc-per-node=gpu \
+		--rdzv-id="$SLURM_JOBID" \
+		--rdzv-endpoint=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1) \
+		--rdzv-backend="c10d" \
+		example.py
 

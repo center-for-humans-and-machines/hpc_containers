@@ -45,10 +45,12 @@ def main():
     training_args = TrainingArguments(
         output_dir="model",
         evaluation_strategy="epoch",
-        learning_rate=2e-5,
+        learning_rate=4e-5,
         weight_decay=0.01,
         log_level="info",
+        log_level_replica="warning",
         ddp_find_unused_parameters=False,
+        per_device_train_batch_size=2,
     )
 
     trainer = Trainer(
