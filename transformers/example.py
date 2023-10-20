@@ -46,13 +46,14 @@ def main(args):
 
     training_args = TrainingArguments(
         output_dir="model",
-        evaluation_strategy="epoch",
         learning_rate=args.lr,
         weight_decay=0.01,
+        per_device_train_batch_size=args.bs,
+        evaluation_strategy="epoch",
+        ddp_find_unused_parameters=False,
         log_level="info",
         log_level_replica="warning",
-        ddp_find_unused_parameters=False,
-        per_device_train_batch_size=args.bs,
+        log_on_each_node=False,
     )
 
     trainer = Trainer(
