@@ -1,15 +1,17 @@
 # Reference: https://huggingface.co/docs/transformers/tasks/language_modeling
+import argparse
 import math
 
 from datasets import Dataset
 from transformers import AutoTokenizer
 from transformers import DataCollatorForLanguageModeling
 from transformers import AutoModelForCausalLM, TrainingArguments, Trainer
+
 # import os
 # print(os.environ)
 
 
-def main():
+def main(args):
     model = AutoModelForCausalLM.from_pretrained("distilgpt2")
     tokenizer = AutoTokenizer.from_pretrained("distilgpt2")
 
@@ -45,12 +47,12 @@ def main():
     training_args = TrainingArguments(
         output_dir="model",
         evaluation_strategy="epoch",
-        learning_rate=4e-5,
+        learning_rate=args.lr,
         weight_decay=0.01,
         log_level="info",
         log_level_replica="warning",
         ddp_find_unused_parameters=False,
-        per_device_train_batch_size=2,
+        per_device_train_batch_size=args.bs,
     )
 
     trainer = Trainer(
@@ -68,4 +70,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--lr", type=float, default=2e-5, help="The learning rate.")
+    parser.add_argument(
+        "--bs", type=int, default=8, help="The batch size per device during training."
+    )
+    args = parser.parse_args()
+
+    main(args)
