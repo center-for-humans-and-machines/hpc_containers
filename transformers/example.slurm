@@ -42,3 +42,4 @@ srun apptainer exec \
 		--rdzv-endpoint=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1) \
 		--rdzv-backend="c10d" \
 		example.py --lr=4e-5 --bs=2
+
