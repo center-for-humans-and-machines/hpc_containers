@@ -47,6 +47,8 @@ def main():
         evaluation_strategy="epoch",
         learning_rate=2e-5,
         weight_decay=0.01,
+        log_level="info",
+        ddp_find_unused_parameters=False,
     )
 
     trainer = Trainer(
